@@ -1,7 +1,9 @@
-import { Component, ElementRef, Inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, Inject, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import * as moment from 'moment';
+import { fromPromise } from 'rxjs/internal/observable/fromPromise';
+import { filter } from 'rxjs/operators';
 import { Course } from '../model/course';
 
 @Component({
@@ -9,7 +11,7 @@ import { Course } from '../model/course';
   templateUrl: './course-dialog.component.html',
   styleUrls: ['./course-dialog.component.css']
 })
-export class CourseDialogComponent {
+export class CourseDialogComponent implements OnInit {
 
   form: FormGroup;
   course: Course;
@@ -30,6 +32,30 @@ export class CourseDialogComponent {
       releasedAt: [moment(), Validators.required],
       longDescription: [course.longDescription, Validators.required]
     });
+  }
+
+  ngOnInit() {
+    this.form
+      .valueChanges
+      .pipe(filter(() => this.form.valid))
+      .subscribe((changes) => {
+        const saveCourse$ = fromPromise(
+          fetch(
+            `/api/courses/${this.course.id}`,
+            {
+              method: 'PUT',
+              body: JSON.stringify(changes),
+              headers: { 'content-type': 'application/json' }
+            }
+          )
+        );
+
+        /**
+         * TODO: This is an anti-pattern, we need to avoid nested subscriptions. In addition, this way we cannot
+         * guarantee the latest changes will be the final results (because the operations are asynchronous)
+         */
+        saveCourse$.subscribe();
+      });
   }
 
   close() {
