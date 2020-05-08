@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { createHttpObservable } from '../common/util';
 import { CourseCategory } from '../enum/course-category.enum';
 import { Course } from '../model/course';
@@ -16,11 +16,12 @@ export class HomeComponent implements OnInit {
   advancedCourses$: Observable<Course[]>;
 
   ngOnInit() {
-    const http$ = createHttpObservable('/api/courses');
+    const http$: Observable<Course[]> = createHttpObservable<Course[]>('/api/courses');
 
-    const courses$: Observable<Course[]> = http$.pipe(
+    const courses$ = http$.pipe(
       map((res) => Object.values(res['payload'])),
-    );
+      shareReplay(),
+    ) as Observable<Course[]>;
 
     this.beginnerCourses$ = courses$.pipe(
       map((courses) => courses.filter((course) => course.category === CourseCategory.BEGINNER)),
