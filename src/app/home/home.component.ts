@@ -16,12 +16,11 @@ export class HomeComponent implements OnInit {
   advancedCourses$: Observable<Course[]>;
 
   ngOnInit() {
-    const http$: Observable<Course[]> = createHttpObservable<Course[]>('/api/courses');
-
-    const courses$ = http$.pipe(
-      map((res) => Object.values(res['payload'])),
-      shareReplay(),
-    ) as Observable<Course[]>;
+    const courses$ = createHttpObservable('/api/courses')
+      .pipe(
+        map((res: Course[]) => Object.values(res['payload'])),
+        shareReplay(),
+      ) as Observable<Course[]>; // TODO: Is it possible to do without this?
 
     this.beginnerCourses$ = courses$.pipe(
       map((courses) => courses.filter((course) => course.category === CourseCategory.BEGINNER)),

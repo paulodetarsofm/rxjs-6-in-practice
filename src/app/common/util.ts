@@ -1,7 +1,7 @@
 import { Observable, Subscriber } from 'rxjs';
 
-export function createHttpObservable<T>(url: string): Observable<T> {
-  return new Observable((observer: Subscriber<T>) => {
+export function createHttpObservable(url: string): Observable<any> {
+  return new Observable((observer: Subscriber<any>) => {
     fetch(url)
       .then((response: Response) => {
         return response.json() || undefined;
