@@ -24,6 +24,14 @@
 !.vscode/launch.json
 !.vscode/extensions.json
 
+# e2e
+/e2e/*.js
+/e2e/*.map
+
+# System Files
+.DS_Store
+Thumbs.db
+
 # misc
 /.sass-cache
 /connect.lock
@@ -32,11 +40,4 @@
 npm-debug.log
 testem.log
 /typings
-
-# e2e
-/e2e/*.js
-/e2e/*.map
-
-# System Files
-.DS_Store
-Thumbs.db
+/# temp
