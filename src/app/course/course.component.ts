@@ -1,6 +1,8 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable } from 'rxjs';
+import { fromEvent, Observable } from 'rxjs';
+import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { createHttpObservable } from '../common/util';
 import { Course } from '../model/course';
 import { Lesson } from '../model/lesson';
 
@@ -9,12 +11,13 @@ import { Lesson } from '../model/lesson';
   templateUrl: './course.component.html',
   styleUrls: ['./course.component.css']
 })
-export class CourseComponent implements OnInit {
+export class CourseComponent implements AfterViewInit, OnInit {
 
   course$: Observable<Course>;
   lessons$: Observable<Lesson[]>;
 
-  @ViewChild('searchInput', { static: true }) input: ElementRef;
+  @ViewChild('searchInput', { static: true })
+  input: ElementRef;
 
   constructor(
     private route: ActivatedRoute,
@@ -22,5 +25,19 @@ export class CourseComponent implements OnInit {
 
   ngOnInit() {
     const courseId = this.route.snapshot.params['id'];
+    this.course$ = createHttpObservable(`/api/courses/${courseId}`);
+    this.lessons$ = createHttpObservable(`/api/lessons?courseId=${courseId}&pageSize=100`).pipe(
+      map((response) => response['payload']),
+    );
+  }
+
+  ngAfterViewInit() {
+    fromEvent<any>(this.input.nativeElement, 'keyup')
+      .pipe(
+        map((event) => event.target.value),
+        debounceTime(400),
+        distinctUntilChanged(),
+      )
+      .subscribe(console.log);
   }
 }
